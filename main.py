@@ -6,6 +6,8 @@ import pandas as pd
 vbias = 29.5
 muons_per_min = 25 * 5 #Intensity of muons is 1 per cm^2 per minute, area is 25cm x 5cm
 thres_volt = 650
+scale_factor = 10 #Scaling error bars
+mins = 8
 
 #Set current directory
 current_directory = os.getcwd()
@@ -82,12 +84,17 @@ count_list = {
     '(A&&B)||(C&&D)': counts_2, 
     'Any single SiPM': counts_3, 
     'Any two SiPMs': counts_4, 
-    'Any Three SiPMS': counts_5
+    'Any three SiPMs': counts_5
     }
 
-colors = ['r','b','g','k','m','c']
+colors = ['r','b','g','y','m','c']
 
 for i, (key, values) in enumerate(count_list.items()):
+    err_scaled = []
+    for val in values:
+        error = np.sqrt(val)
+        err_scaled.append(error*scale_factor)
+
     ax.plot(minutes, values, label=key, color=colors[i])
 
 #Expected muon line
@@ -96,7 +103,7 @@ ax.scatter(minutes, expected, label='Expected count')
 ax.set_yscale('log')
 ax.set_xlabel('Time / Minutes')
 ax.set_ylabel('Counts')
-ax.set_title(f'Coincidence Counts vs Time, Vbias = {vbias}V, Thresh Vol={thres_volt}mV')
+ax.set_title(f'Coincidence Counts vs Time for {mins} mins. Vbias={vbias}V, Thres Vol={thres_volt}mV')
 ax.legend()
 plt.savefig('coincidence_test_function_of_time')
 plt.show()
@@ -112,20 +119,34 @@ fig1, ax1 = plt.subplots()
 coincidences = []
 efficiencies = []
 
+#Error vals
+err = []
+
 for i, (key, values) in enumerate(count_list.items()):
     final_index = len(values) - 1
     counts_8_mins = values[final_index]
     expected_8_mins = expected[final_index]
     fraction = counts_8_mins / expected_8_mins
-    efficiency = np.round(fraction * 100, 4)
+    efficiency = fraction * 100
 
     coincidences.append(key)
     efficiencies.append(efficiency)
+
+    error = efficiency * 1/np.sqrt(counts_8_mins)
+
+    err.append(error)
+
+err_scaled = []
+
+
+for e in err:
+    err_scaled.append(e*scale_factor)
 
 efficiency_100 = np.full_like(efficiencies, 100, dtype=float)
 
 ax1.plot(coincidences, efficiency_100, label = f'100% Efficiency', color = 'r', ls = '--')
 ax1.bar(coincidences, efficiencies)
+#ax1.errorbar(coincidences, efficiencies, err_scaled, label=f'Error bars enlarged by factor of {scale_factor}', marker='o', color='k')
 ax1.set_title(f'Efficiency Est., {mins} mins, VBias={vbias}V, Thresh Vol={thres_volt}mV')
 ax1.set_xlabel('Coincidence Logic')
 ax1.legend()
