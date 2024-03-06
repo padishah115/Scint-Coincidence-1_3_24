@@ -6,7 +6,7 @@ import pandas as pd
 vbias = 29.5
 muons_per_min = 25 * 5 #Intensity of muons is 1 per cm^2 per minute, area is 25cm x 5cm
 thres_volt = 650
-scale_factor = 10 #Scaling error bars
+scale_factor = 5 #Scaling error bars
 mins = 8
 
 #Set current directory
@@ -95,15 +95,16 @@ for i, (key, values) in enumerate(count_list.items()):
         error = np.sqrt(val)
         err_scaled.append(error*scale_factor)
 
-    ax.plot(minutes, values, label=key, color=colors[i])
+    ax.errorbar(minutes, values, yerr=err_scaled, label=key, color=colors[i])
+    ax.scatter(minutes, values, color=colors[i])
 
 #Expected muon line
 ax.scatter(minutes, expected, label='Expected count')
 
 ax.set_yscale('log')
 ax.set_xlabel('Time / Minutes')
-ax.set_ylabel('Counts')
-ax.set_title(f'Coincidence Counts vs Time for {mins} mins. Vbias={vbias}V, Thres Vol={thres_volt}mV')
+ax.set_ylabel(f'Counts (error scaled by factor of {scale_factor})')
+ax.set_title(f'Coincidence Counts ({mins} mins). Vbias={vbias}V, Thres Vol={thres_volt}mV')
 ax.legend()
 plt.savefig('coincidence_test_function_of_time')
 plt.show()
@@ -113,48 +114,53 @@ plt.show()
 # Uses data from 8 Min capure #
 ###############################
 
-mins = 8
-fig1, ax1 = plt.subplots()
+# mins = 8
+# fig1, ax1 = plt.subplots()
 
-coincidences = []
-efficiencies = []
+# coincidences = []
+# efficiencies = []
 
-#Error vals
-err = []
+# #Error vals
+# err = []
 
-for i, (key, values) in enumerate(count_list.items()):
-    final_index = len(values) - 1
-    counts_8_mins = values[final_index]
-    expected_8_mins = expected[final_index]
-    fraction = counts_8_mins / expected_8_mins
-    efficiency = fraction * 100
+# for i, (key, values) in enumerate(count_list.items()):
+#     final_index = len(values) - 1
+#     print(len(values))
+#     print(final_index)
+#     counts_8_mins = values[final_index]
+#     expected_8_mins = expected[final_index]
+#     fraction = counts_8_mins / expected_8_mins
+#     efficiency = fraction * 100
 
-    coincidences.append(key)
-    efficiencies.append(efficiency)
+#     coincidences.append(key)
+#     efficiencies.append(efficiency)
 
-    error = efficiency * 1/np.sqrt(counts_8_mins)
+#     error = efficiency * 1/np.sqrt(counts_8_mins)
 
-    err.append(error)
+#     err.append(error)
 
-err_scaled = []
+# err_scaled = []
 
 
-for e in err:
-    err_scaled.append(e*scale_factor)
+# for e in err:
+#     err_scaled.append(e*scale_factor)
 
-efficiency_100 = np.full_like(efficiencies, 100, dtype=float)
+# efficiency_100 = np.full_like(efficiencies, 100, dtype=float)
 
-ax1.plot(coincidences, efficiency_100, label = f'100% Efficiency', color = 'r', ls = '--')
-ax1.bar(coincidences, efficiencies)
-#ax1.errorbar(coincidences, efficiencies, err_scaled, label=f'Error bars enlarged by factor of {scale_factor}', marker='o', color='k')
-ax1.set_title(f'Efficiency Est., {mins} mins, VBias={vbias}V, Thresh Vol={thres_volt}mV')
-ax1.set_xlabel('Coincidence Logic')
-ax1.legend()
-ax1.set_ylabel('Efficiency Est. % (Obs count / Exp count)')
-plt.xticks(rotation=90)
-plt.tight_layout()
-plt.savefig('efficiency_bars')
-plt.show()
+# ax1.plot(coincidences, efficiency_100, label = f'100% Capture (estimate)', color = 'r', ls = '--')
+# ax1.bar(coincidences, efficiencies)
+# ax1.errorbar(coincidences, efficiencies, err_scaled, label=f'Error bars (enlarged by factor of {scale_factor})', marker='o', color='k')
+# ax1.set_title(f'Muon Capture Fraction Est., {mins} mins, VBias={vbias}V, Thresh Vol={thres_volt}mV')
+# ax1.set_xlabel('Coincidence Logic')
+# ax1.legend()
+# ax1.set_ylabel('Capture Fraction Est. % (Obs count / Exp count)')
+# plt.xticks(rotation=90)
+# plt.tight_layout()
+# #plt.savefig('capture_fraction')
+# plt.show()
+
+
+
 
 
     
